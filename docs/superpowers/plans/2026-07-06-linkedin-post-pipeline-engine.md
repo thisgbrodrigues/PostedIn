@@ -1367,20 +1367,20 @@ function mockInsertSelectSingle(data: unknown, error: unknown = null) {
   const select = vi.fn().mockReturnValue({ single });
   const insert = vi.fn().mockReturnValue({ select });
   const from = vi.fn().mockReturnValue({ insert });
-  return { from } as unknown as SupabaseClient;
+  return { from, insert } as unknown as SupabaseClient & { insert: typeof insert };
 }
 
 function mockInsert(error: unknown = null) {
   const insert = vi.fn().mockResolvedValue({ error });
   const from = vi.fn().mockReturnValue({ insert });
-  return { from } as unknown as SupabaseClient;
+  return { from, insert } as unknown as SupabaseClient & { insert: typeof insert };
 }
 
 function mockUpdateEq(error: unknown = null) {
   const eq = vi.fn().mockResolvedValue({ error });
   const update = vi.fn().mockReturnValue({ eq });
   const from = vi.fn().mockReturnValue({ update });
-  return { from } as unknown as SupabaseClient;
+  return { from, update, eq } as unknown as SupabaseClient & { update: typeof update; eq: typeof eq };
 }
 
 describe('createExecution', () => {
@@ -1405,6 +1405,11 @@ describe('createExecution', () => {
       errorMessage: null,
     });
     expect(supabase.from).toHaveBeenCalledWith('pipeline_executions');
+    expect(supabase.insert).toHaveBeenCalledWith({
+      config_profile_id: 'cfg-1',
+      input_theme: null,
+      status: 'running',
+    });
   });
 
   it('throws when supabase returns an error', async () => {
@@ -1431,6 +1436,14 @@ describe('saveStageResult', () => {
     );
 
     expect(supabase.from).toHaveBeenCalledWith('stage_results');
+    expect(supabase.insert).toHaveBeenCalledWith({
+      execution_id: 'exec-1',
+      stage_name: 'theme',
+      input: { niche: 'devops' },
+      output: { theme: 'x', rationale: 'y' },
+      model_used: 'anthropic/claude-sonnet-5',
+      duration_ms: 1200,
+    });
   });
 
   it('throws when supabase returns an error', async () => {
@@ -1449,6 +1462,14 @@ describe('markExecutionFailed', () => {
     await markExecutionFailed(supabase, 'exec-1', 'writer', 'boom');
 
     expect(supabase.from).toHaveBeenCalledWith('pipeline_executions');
+    expect(supabase.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        status: 'failed',
+        failed_stage: 'writer',
+        error_message: 'boom',
+      })
+    );
+    expect(supabase.eq).toHaveBeenCalledWith('id', 'exec-1');
   });
 });
 
@@ -1459,6 +1480,8 @@ describe('markExecutionSuccess', () => {
     await markExecutionSuccess(supabase, 'exec-1');
 
     expect(supabase.from).toHaveBeenCalledWith('pipeline_executions');
+    expect(supabase.update).toHaveBeenCalledWith(expect.objectContaining({ status: 'success' }));
+    expect(supabase.eq).toHaveBeenCalledWith('id', 'exec-1');
   });
 });
 
@@ -1469,6 +1492,11 @@ describe('saveGeneratedPost', () => {
     await saveGeneratedPost(supabase, 'exec-1', 'Meu post final', ['Gancho A', 'Gancho B']);
 
     expect(supabase.from).toHaveBeenCalledWith('generated_posts');
+    expect(supabase.insert).toHaveBeenCalledWith({
+      execution_id: 'exec-1',
+      final_post: 'Meu post final',
+      hook_variations: ['Gancho A', 'Gancho B'],
+    });
   });
 });
 ```
@@ -1939,7 +1967,7 @@ function mockInsertSelectSingle(data: unknown, error: unknown = null) {
   const select = vi.fn().mockReturnValue({ single });
   const insert = vi.fn().mockReturnValue({ select });
   const from = vi.fn().mockReturnValue({ insert });
-  return { from } as unknown as SupabaseClient;
+  return { from, insert } as unknown as SupabaseClient & { insert: typeof insert };
 }
 
 function mockSelect(data: unknown, error: unknown = null) {
@@ -1953,7 +1981,7 @@ function mockSelectEqMaybeSingle(data: unknown, error: unknown = null) {
   const eq = vi.fn().mockReturnValue({ maybeSingle });
   const select = vi.fn().mockReturnValue({ eq });
   const from = vi.fn().mockReturnValue({ select });
-  return { from } as unknown as SupabaseClient;
+  return { from, eq } as unknown as SupabaseClient & { eq: typeof eq };
 }
 
 function mockUpdateEqSelectSingle(data: unknown, error: unknown = null) {
@@ -1962,7 +1990,7 @@ function mockUpdateEqSelectSingle(data: unknown, error: unknown = null) {
   const eq = vi.fn().mockReturnValue({ select });
   const update = vi.fn().mockReturnValue({ eq });
   const from = vi.fn().mockReturnValue({ update });
-  return { from } as unknown as SupabaseClient;
+  return { from, update, eq } as unknown as SupabaseClient & { update: typeof update; eq: typeof eq };
 }
 
 const row = {
@@ -1989,6 +2017,14 @@ describe('createConfigProfile', () => {
     });
 
     expect(result.id).toBe('cfg-1');
+    expect(supabase.insert).toHaveBeenCalledWith({
+      name: 'Devops Voice',
+      tone_of_voice: {},
+      objective: 'gerar autoridade',
+      niche: 'devops',
+      template: {},
+      model_overrides: {},
+    });
   });
 
   it('throws when supabase returns an error', async () => {
@@ -2025,6 +2061,7 @@ describe('getConfigProfile', () => {
     const result = await getConfigProfile(supabase, 'cfg-1');
 
     expect(result?.id).toBe('cfg-1');
+    expect(supabase.eq).toHaveBeenCalledWith('id', 'cfg-1');
   });
 
   it('returns null when not found', async () => {
@@ -2043,6 +2080,8 @@ describe('updateConfigProfile', () => {
     const result = await updateConfigProfile(supabase, 'cfg-1', { name: 'Nova voz' });
 
     expect(result.name).toBe('Nova voz');
+    expect(supabase.update).toHaveBeenCalledWith({ name: 'Nova voz' });
+    expect(supabase.eq).toHaveBeenCalledWith('id', 'cfg-1');
   });
 });
 ```
