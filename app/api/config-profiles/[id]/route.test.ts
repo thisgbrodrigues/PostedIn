@@ -49,6 +49,9 @@ describe('PATCH /api/config-profiles/[id]', () => {
     const body = await response.json();
 
     expect(body.name).toBe('Nova voz');
+    // Guards against regressing to configProfileInputSchema.partial(), which
+    // would have filled in toneOfVoice/template/modelOverrides defaults here.
+    expect(repository.updateConfigProfile).toHaveBeenCalledWith(expect.anything(), 'cfg-1', { name: 'Nova voz' });
   });
 
   it('returns 400 for an invalid body', async () => {

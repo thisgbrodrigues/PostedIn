@@ -1,5 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { ConfigProfileInput } from './schema';
+import type { ConfigProfileInput, ConfigProfileUpdate } from './schema';
 import type { ConfigProfile } from '../pipeline/types';
 
 interface ConfigProfileRow {
@@ -62,7 +62,7 @@ export async function getConfigProfile(supabase: SupabaseClient, id: string): Pr
 export async function updateConfigProfile(
   supabase: SupabaseClient,
   id: string,
-  input: Partial<ConfigProfileInput>
+  input: ConfigProfileUpdate
 ): Promise<ConfigProfile> {
   const patch: Record<string, unknown> = {};
   if (input.name !== undefined) patch.name = input.name;
