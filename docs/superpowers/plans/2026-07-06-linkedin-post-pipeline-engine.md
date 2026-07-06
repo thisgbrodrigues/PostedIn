@@ -2528,6 +2528,17 @@ describe('POST /api/generate', () => {
     expect(response.status).toBe(400);
   });
 
+  it('returns 400 when theme is present but not a string', async () => {
+    const request = new Request('http://localhost', {
+      method: 'POST',
+      body: JSON.stringify({ configProfileId: 'cfg-1', theme: 123 }),
+    });
+
+    const response = await POST(request);
+
+    expect(response.status).toBe(400);
+  });
+
   it('returns 404 when the config profile does not exist', async () => {
     vi.mocked(repository.getConfigProfile).mockResolvedValue(null);
 
@@ -2604,6 +2615,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'configProfileId is required' }, { status: 400 });
   }
 
+  if (body.theme !== undefined && typeof body.theme !== 'string') {
+    return NextResponse.json({ error: 'theme must be a string' }, { status: 400 });
+  }
+
   const supabase = createSupabaseClient();
   const profile = await getConfigProfile(supabase, body.configProfileId);
 
@@ -2629,7 +2644,7 @@ export async function POST(request: Request) {
 - [ ] **Step 4: Run test to verify it passes**
 
 Run: `npx vitest run app/api/generate/route.test.ts`
-Expected: PASS (4 tests)
+Expected: PASS (5 tests)
 
 - [ ] **Step 5: Commit**
 
