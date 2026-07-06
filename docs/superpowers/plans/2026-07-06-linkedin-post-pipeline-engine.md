@@ -1923,13 +1923,16 @@ Expected: FAIL with "Cannot find module './schema'"
 ```ts
 import { z } from 'zod';
 
+// z.record() requires an explicit key schema in this project's installed
+// Zod version (v4) — v3's single-argument z.record(valueType) overload with
+// an implicit string key no longer exists.
 export const configProfileInputSchema = z.object({
   name: z.string().min(1),
-  toneOfVoice: z.record(z.unknown()).default({}),
+  toneOfVoice: z.record(z.string(), z.unknown()).default({}),
   objective: z.string().min(1),
   niche: z.string().min(1),
-  template: z.record(z.unknown()).default({}),
-  modelOverrides: z.record(z.string().min(1)).default({}),
+  template: z.record(z.string(), z.unknown()).default({}),
+  modelOverrides: z.record(z.string(), z.string().min(1)).default({}),
 });
 
 export type ConfigProfileInput = z.infer<typeof configProfileInputSchema>;
