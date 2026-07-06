@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { configProfileInputSchema } from './schema';
+import { configProfileInputSchema, configProfileUpdateSchema } from './schema';
 
 describe('configProfileInputSchema', () => {
   it('accepts a minimal valid profile and fills in defaults', () => {
@@ -27,6 +27,20 @@ describe('configProfileInputSchema', () => {
       niche: 'devops',
       modelOverrides: { theme: '' },
     });
+
+    expect(result.success).toBe(false);
+  });
+});
+
+describe('configProfileUpdateSchema', () => {
+  it('accepts a partial update without filling in defaults for omitted fields', () => {
+    const result = configProfileUpdateSchema.parse({ name: 'Nova voz' });
+
+    expect(result).toEqual({ name: 'Nova voz' });
+  });
+
+  it('rejects empty-string model override values in a partial update', () => {
+    const result = configProfileUpdateSchema.safeParse({ modelOverrides: { theme: '' } });
 
     expect(result.success).toBe(false);
   });
