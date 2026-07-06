@@ -1895,7 +1895,7 @@ export const configProfileInputSchema = z.object({
   objective: z.string().min(1),
   niche: z.string().min(1),
   template: z.record(z.unknown()).default({}),
-  modelOverrides: z.record(z.string()).default({}),
+  modelOverrides: z.record(z.string().min(1)).default({}),
 });
 
 export type ConfigProfileInput = z.infer<typeof configProfileInputSchema>;
