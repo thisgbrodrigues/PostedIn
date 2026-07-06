@@ -19,4 +19,15 @@ describe('configProfileInputSchema', () => {
 
     expect(result.success).toBe(false);
   });
+
+  it('rejects empty-string model override values', () => {
+    const result = configProfileInputSchema.safeParse({
+      name: 'Devops Voice',
+      objective: 'gerar autoridade',
+      niche: 'devops',
+      modelOverrides: { theme: '' },
+    });
+
+    expect(result.success).toBe(false);
+  });
 });
