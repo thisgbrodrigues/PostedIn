@@ -1815,12 +1815,12 @@ export async function runPipeline(
   state.reviewNotes = reviewResult.notes;
   state.reviewPassed = reviewResult.passed;
 
-  await saveGeneratedPost(supabase, execution.id, state.finalPost, state.hookVariations ?? []);
+  await saveGeneratedPost(supabase, execution.id, state.finalPost!, state.hookVariations ?? []);
   await markExecutionSuccess(supabase, execution.id);
 
   return {
     executionId: execution.id,
-    finalPost: state.finalPost,
+    finalPost: state.finalPost!,
     hookVariations: state.hookVariations ?? [],
     trace: state,
   };
@@ -1831,6 +1831,11 @@ export async function runPipeline(
 
 Run: `npx vitest run src/lib/pipeline/orchestrator.test.ts`
 Expected: PASS (2 tests)
+
+- [ ] **Step 4b: Type-check**
+
+Run: `npx tsc --noEmit`
+Expected: no errors. `PipelineState.finalPost` is optional (`string | undefined`), so both call sites above need the `!` assertion — by this point in the sequential flow `finalPost` is always set (assigned by the hook stage, then overwritten by the reviewer stage), but TypeScript can't infer that across the `await` boundaries, so the assertions are required for `tsc` to pass even though the tests already pass without them.
 
 - [ ] **Step 5: Commit**
 
