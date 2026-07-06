@@ -1890,7 +1890,7 @@ git commit -m "feat: add pipeline orchestrator"
 
 ```ts
 import { describe, it, expect } from 'vitest';
-import { configProfileInputSchema } from './schema';
+import { configProfileInputSchema, configProfileUpdateSchema } from './schema';
 
 describe('configProfileInputSchema', () => {
   it('accepts a minimal valid profile and fills in defaults', () => {
@@ -1922,6 +1922,20 @@ describe('configProfileInputSchema', () => {
     expect(result.success).toBe(false);
   });
 });
+
+describe('configProfileUpdateSchema', () => {
+  it('accepts a partial update without filling in defaults for omitted fields', () => {
+    const result = configProfileUpdateSchema.parse({ name: 'Nova voz' });
+
+    expect(result).toEqual({ name: 'Nova voz' });
+  });
+
+  it('rejects empty-string model override values in a partial update', () => {
+    const result = configProfileUpdateSchema.safeParse({ modelOverrides: { theme: '' } });
+
+    expect(result.success).toBe(false);
+  });
+});
 ```
 
 - [ ] **Step 2: Run test to verify it fails**
@@ -1937,22 +1951,41 @@ import { z } from 'zod';
 // z.record() requires an explicit key schema in this project's installed
 // Zod version (v4) — v3's single-argument z.record(valueType) overload with
 // an implicit string key no longer exists.
-export const configProfileInputSchema = z.object({
+const toneOfVoiceSchema = z.record(z.string(), z.unknown());
+const templateSchema = z.record(z.string(), z.unknown());
+const modelOverridesSchema = z.record(z.string(), z.string().min(1));
+
+// No .default() here on purpose — this base shape backs both schemas below.
+// configProfileUpdateSchema.partial() must leave an omitted field genuinely
+// absent (undefined) rather than filled in with {}, since a PATCH treats any
+// non-undefined field as "set this," and a filled-in default would silently
+// overwrite existing data on every partial update.
+const configProfileBaseSchema = z.object({
   name: z.string().min(1),
-  toneOfVoice: z.record(z.string(), z.unknown()).default({}),
+  toneOfVoice: toneOfVoiceSchema,
   objective: z.string().min(1),
   niche: z.string().min(1),
-  template: z.record(z.string(), z.unknown()).default({}),
-  modelOverrides: z.record(z.string(), z.string().min(1)).default({}),
+  template: templateSchema,
+  modelOverrides: modelOverridesSchema,
+});
+
+export const configProfileInputSchema = configProfileBaseSchema.extend({
+  toneOfVoice: toneOfVoiceSchema.default({}),
+  template: templateSchema.default({}),
+  modelOverrides: modelOverridesSchema.default({}),
 });
 
 export type ConfigProfileInput = z.infer<typeof configProfileInputSchema>;
+
+export const configProfileUpdateSchema = configProfileBaseSchema.partial();
+
+export type ConfigProfileUpdate = z.infer<typeof configProfileUpdateSchema>;
 ```
 
 - [ ] **Step 4: Run test to verify it passes**
 
 Run: `npx vitest run src/lib/configProfiles/schema.test.ts`
-Expected: PASS (3 tests)
+Expected: PASS (5 tests)
 
 - [ ] **Step 5: Commit**
 
@@ -2402,7 +2435,7 @@ Expected: FAIL with "Cannot find module './route'"
 ```ts
 import { NextResponse } from 'next/server';
 import { createSupabaseClient } from '@/lib/supabase/client';
-import { configProfileInputSchema } from '@/lib/configProfiles/schema';
+import { configProfileUpdateSchema } from '@/lib/configProfiles/schema';
 import { getConfigProfile, updateConfigProfile } from '@/lib/configProfiles/repository';
 
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -2420,7 +2453,10 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const body = await request.json();
-  const parsed = configProfileInputSchema.partial().safeParse(body);
+  // Uses configProfileUpdateSchema (not configProfileInputSchema.partial())
+  // because .partial() does not strip .default() — an omitted field would
+  // otherwise be silently filled with {} and overwrite existing data on update.
+  const parsed = configProfileUpdateSchema.safeParse(body);
 
   if (!parsed.success) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
