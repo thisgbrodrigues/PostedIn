@@ -2647,7 +2647,7 @@ git commit -m "feat: add /api/generate route"
 - [ ] **Step 1: Run the full test suite**
 
 Run: `npm test`
-Expected: all test files pass (21 test files, no failures).
+Expected: all test files pass (17 test files, no failures).
 
 - [ ] **Step 2: Type-check the whole project**
 
