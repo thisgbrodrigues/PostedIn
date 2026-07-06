@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createSupabaseClient } from '@/lib/supabase/client';
-import { configProfileInputSchema } from '@/lib/configProfiles/schema';
+import { configProfileUpdateSchema } from '@/lib/configProfiles/schema';
 import { getConfigProfile, updateConfigProfile } from '@/lib/configProfiles/repository';
 
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -18,7 +18,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const body = await request.json();
-  const parsed = configProfileInputSchema.partial().safeParse(body);
+  const parsed = configProfileUpdateSchema.safeParse(body);
 
   if (!parsed.success) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
