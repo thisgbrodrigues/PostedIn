@@ -1910,6 +1910,17 @@ describe('configProfileInputSchema', () => {
 
     expect(result.success).toBe(false);
   });
+
+  it('rejects empty-string model override values', () => {
+    const result = configProfileInputSchema.safeParse({
+      name: 'Devops Voice',
+      objective: 'gerar autoridade',
+      niche: 'devops',
+      modelOverrides: { theme: '' },
+    });
+
+    expect(result.success).toBe(false);
+  });
 });
 ```
 
@@ -1941,7 +1952,7 @@ export type ConfigProfileInput = z.infer<typeof configProfileInputSchema>;
 - [ ] **Step 4: Run test to verify it passes**
 
 Run: `npx vitest run src/lib/configProfiles/schema.test.ts`
-Expected: PASS (2 tests)
+Expected: PASS (3 tests)
 
 - [ ] **Step 5: Commit**
 
