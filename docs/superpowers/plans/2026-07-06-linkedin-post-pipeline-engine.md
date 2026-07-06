@@ -2143,7 +2143,7 @@ Expected: FAIL with "Cannot find module './repository'"
 
 ```ts
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { ConfigProfileInput } from './schema';
+import type { ConfigProfileInput, ConfigProfileUpdate } from './schema';
 import type { ConfigProfile } from '../pipeline/types';
 
 interface ConfigProfileRow {
@@ -2206,7 +2206,7 @@ export async function getConfigProfile(supabase: SupabaseClient, id: string): Pr
 export async function updateConfigProfile(
   supabase: SupabaseClient,
   id: string,
-  input: Partial<ConfigProfileInput>
+  input: ConfigProfileUpdate
 ): Promise<ConfigProfile> {
   const patch: Record<string, unknown> = {};
   if (input.name !== undefined) patch.name = input.name;
@@ -2414,6 +2414,9 @@ describe('PATCH /api/config-profiles/[id]', () => {
     const body = await response.json();
 
     expect(body.name).toBe('Nova voz');
+    // Guards against regressing to configProfileInputSchema.partial(), which
+    // would have filled in toneOfVoice/template/modelOverrides defaults here.
+    expect(repository.updateConfigProfile).toHaveBeenCalledWith(expect.anything(), 'cfg-1', { name: 'Nova voz' });
   });
 
   it('returns 400 for an invalid body', async () => {
