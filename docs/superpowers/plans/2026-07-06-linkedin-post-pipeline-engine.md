@@ -1665,6 +1665,7 @@ const baseConfig: ConfigProfile = {
 const fakeSupabase = {} as SupabaseClient;
 
 beforeEach(() => {
+  vi.clearAllMocks();
   vi.mocked(repository.createExecution).mockResolvedValue({
     id: 'exec-1',
     configProfileId: 'cfg-1',
