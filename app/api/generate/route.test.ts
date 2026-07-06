@@ -32,6 +32,17 @@ describe('POST /api/generate', () => {
     expect(response.status).toBe(400);
   });
 
+  it('returns 400 when theme is present but not a string', async () => {
+    const request = new Request('http://localhost', {
+      method: 'POST',
+      body: JSON.stringify({ configProfileId: 'cfg-1', theme: 123 }),
+    });
+
+    const response = await POST(request);
+
+    expect(response.status).toBe(400);
+  });
+
   it('returns 404 when the config profile does not exist', async () => {
     vi.mocked(repository.getConfigProfile).mockResolvedValue(null);
 

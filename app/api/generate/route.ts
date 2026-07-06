@@ -11,6 +11,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'configProfileId is required' }, { status: 400 });
   }
 
+  if (body.theme !== undefined && typeof body.theme !== 'string') {
+    return NextResponse.json({ error: 'theme must be a string' }, { status: 400 });
+  }
+
   const supabase = createSupabaseClient();
   const profile = await getConfigProfile(supabase, body.configProfileId);
 
