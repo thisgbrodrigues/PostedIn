@@ -15,6 +15,8 @@ import {
   markExecutionSuccess,
   saveGeneratedPost,
 } from './repository';
+import { getBrandbook } from '../brandbook/repository';
+import { listStructureExamples } from '../configProfiles/structureExamples/repository';
 
 export interface PipelineResult {
   executionId: string;
@@ -29,6 +31,8 @@ export async function runPipeline(
   inputTheme?: string
 ): Promise<PipelineResult> {
   const execution = await createExecution(supabase, config.id, inputTheme ?? null);
+  const brandbook = await getBrandbook(supabase);
+  const structureExamples = (await listStructureExamples(supabase, config.id)).map((example) => example.content);
   const state: PipelineState = {};
 
   async function runStage<T>(stage: StageName, fn: () => Promise<T>, input: unknown): Promise<T> {
@@ -86,6 +90,8 @@ export async function runPipeline(
           facts: state.facts!,
           template: config.template,
           toneOfVoice: config.toneOfVoice,
+          brandbook,
+          structureExamples,
         },
         config
       ),
@@ -103,7 +109,7 @@ export async function runPipeline(
     'reviewer',
     () =>
       runReviewer(
-        { finalPost: state.finalPost!, objective: config.objective, toneOfVoice: config.toneOfVoice },
+        { finalPost: state.finalPost!, objective: config.objective, toneOfVoice: config.toneOfVoice, brandbook },
         config
       ),
     { finalPost: state.finalPost }
