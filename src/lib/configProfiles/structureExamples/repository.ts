@@ -58,8 +58,17 @@ export async function createStructureExample(
   return mapRow(data);
 }
 
-export async function deleteStructureExample(supabase: SupabaseClient, id: string): Promise<boolean> {
-  const { data, error } = await supabase.from('profile_structure_examples').delete().eq('id', id).select();
+export async function deleteStructureExample(
+  supabase: SupabaseClient,
+  configProfileId: string,
+  id: string
+): Promise<boolean> {
+  const { data, error } = await supabase
+    .from('profile_structure_examples')
+    .delete()
+    .eq('config_profile_id', configProfileId)
+    .eq('id', id)
+    .select();
 
   if (error) throw new Error(`Failed to delete structure example: ${error.message}`);
   return (data ?? []).length > 0;

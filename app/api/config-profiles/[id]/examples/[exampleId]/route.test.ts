@@ -23,7 +23,7 @@ describe('DELETE /api/config-profiles/[id]/examples/[exampleId]', () => {
 
     expect(response.status).toBe(200);
     expect(body.ok).toBe(true);
-    expect(repository.deleteStructureExample).toHaveBeenCalledWith(expect.anything(), 'ex-1');
+    expect(repository.deleteStructureExample).toHaveBeenCalledWith(expect.anything(), 'cfg-1', 'ex-1');
   });
 
   it('returns 404 when the example does not exist', async () => {

@@ -6,9 +6,9 @@ export async function DELETE(
   _request: Request,
   { params }: { params: Promise<{ id: string; exampleId: string }> }
 ) {
-  const { exampleId } = await params;
+  const { id, exampleId } = await params;
   const supabase = createSupabaseClient();
-  const deleted = await deleteStructureExample(supabase, exampleId);
+  const deleted = await deleteStructureExample(supabase, id, exampleId);
 
   if (!deleted) {
     return NextResponse.json({ error: 'Structure example not found' }, { status: 404 });

@@ -19,10 +19,15 @@ function mockInsertSelectSingle(data: unknown, error: unknown = null) {
 
 function mockDeleteEqSelect(data: unknown, error: unknown = null) {
   const select = vi.fn().mockResolvedValue({ data, error });
-  const eq = vi.fn().mockReturnValue({ select });
+  const eq2 = vi.fn().mockReturnValue({ select });
+  const eq = vi.fn().mockReturnValue({ eq: eq2, select });
   const del = vi.fn().mockReturnValue({ eq });
   const from = vi.fn().mockReturnValue({ delete: del });
-  return { from, delete: del, eq } as unknown as SupabaseClient & { delete: typeof del; eq: typeof eq };
+  return { from, delete: del, eq, eq2 } as unknown as SupabaseClient & {
+    delete: typeof del;
+    eq: typeof eq;
+    eq2: typeof eq2;
+  };
 }
 
 const row = {
@@ -83,24 +88,35 @@ describe('deleteStructureExample', () => {
   it('returns true when a row was deleted', async () => {
     const supabase = mockDeleteEqSelect([{ id: 'ex-1' }]);
 
-    const result = await deleteStructureExample(supabase, 'ex-1');
+    const result = await deleteStructureExample(supabase, 'cfg-1', 'ex-1');
 
     expect(result).toBe(true);
-    expect(supabase.eq).toHaveBeenCalledWith('id', 'ex-1');
+    expect(supabase.eq).toHaveBeenCalledWith('config_profile_id', 'cfg-1');
+    expect(supabase.eq2).toHaveBeenCalledWith('id', 'ex-1');
   });
 
   it('returns false when nothing matched the id', async () => {
     const supabase = mockDeleteEqSelect([]);
 
-    const result = await deleteStructureExample(supabase, 'missing');
+    const result = await deleteStructureExample(supabase, 'cfg-1', 'missing');
 
     expect(result).toBe(false);
+  });
+
+  it('returns false when the example belongs to a different profile', async () => {
+    const supabase = mockDeleteEqSelect([]);
+
+    const result = await deleteStructureExample(supabase, 'wrong-cfg', 'ex-1');
+
+    expect(result).toBe(false);
+    expect(supabase.eq).toHaveBeenCalledWith('config_profile_id', 'wrong-cfg');
+    expect(supabase.eq2).toHaveBeenCalledWith('id', 'ex-1');
   });
 
   it('throws when supabase returns an error', async () => {
     const supabase = mockDeleteEqSelect(null, { message: 'delete failed' });
 
-    await expect(deleteStructureExample(supabase, 'ex-1')).rejects.toThrow(
+    await expect(deleteStructureExample(supabase, 'cfg-1', 'ex-1')).rejects.toThrow(
       'Failed to delete structure example: delete failed'
     );
   });
