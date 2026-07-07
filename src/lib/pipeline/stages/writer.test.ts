@@ -61,7 +61,8 @@ describe('runWriter', () => {
       baseConfig
     );
 
-    const call = vi.mocked(ai.generateText).mock.calls[0][0];
+    const calls = vi.mocked(ai.generateText).mock.calls;
+    const call = calls[calls.length - 1][0];
     expect(call.prompt).toContain('Ana Silva');
     expect(call.prompt).toContain('Transparência acima de tudo');
   });
@@ -73,7 +74,8 @@ describe('runWriter', () => {
 
     await runWriter({ ...baseInput, structureExamples: ['# Título curto\n\n- ponto 1\n- ponto 2'] }, baseConfig);
 
-    const call = vi.mocked(ai.generateText).mock.calls[0][0];
+    const calls = vi.mocked(ai.generateText).mock.calls;
+    const call = calls[calls.length - 1][0];
     expect(call.prompt).toContain('ponto 1');
   });
 
