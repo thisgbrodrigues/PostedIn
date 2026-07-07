@@ -2,6 +2,7 @@
 
 import { useEffect, useState, type FormEvent } from "react";
 import { AvatarGlyph, EmptyState, SectionLabel } from "@/components/ui";
+import { StructureExamplesSection } from "@/components/StructureExamples";
 
 interface ConfigProfile {
   id: string;
@@ -220,6 +221,7 @@ export default function PerfisPage() {
               <a href={`/gerar?perfil=${profile.id}`} className="btn btn--ghost" style={{ width: "100%" }}>
                 Gerar com este perfil
               </a>
+              <StructureExamplesSection profileId={profile.id} />
             </div>
           ))}
         </div>
