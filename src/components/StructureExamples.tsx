@@ -48,7 +48,12 @@ export function StructureExamplesSection({ profileId }: { profileId: string }) {
   }
 
   async function handleDelete(exampleId: string) {
-    await fetch(`/api/config-profiles/${profileId}/examples/${exampleId}`, { method: "DELETE" });
+    setError(null);
+    const res = await fetch(`/api/config-profiles/${profileId}/examples/${exampleId}`, { method: "DELETE" });
+    if (!res.ok) {
+      setError("Não deu para remover esse exemplo.");
+      return;
+    }
     load();
   }
 
