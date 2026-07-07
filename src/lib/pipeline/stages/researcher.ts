@@ -5,7 +5,10 @@ import { resolveModel } from '../defaultModels';
 import { StageError, type ConfigProfile, type Fact } from '../types';
 import { tavilySearch } from '../../tavily';
 
-const querySchema = z.object({ queries: z.array(z.string()).min(2).max(4) });
+// Array length constraints (minItems/maxItems) are intentionally omitted: some
+// OpenRouter-routed backends (e.g. Azure/OpenAI strict structured output) reject
+// `minItems`/`maxItems` > 1. The desired count is requested in the prompt instead.
+const querySchema = z.object({ queries: z.array(z.string()) });
 
 const factsSchema = z.object({
   facts: z.array(

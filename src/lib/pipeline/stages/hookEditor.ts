@@ -4,9 +4,12 @@ import { openrouter } from '../../openrouter';
 import { resolveModel } from '../defaultModels';
 import { StageError, type ConfigProfile } from '../types';
 
+// Array length constraints (minItems/maxItems) are intentionally omitted: some
+// OpenRouter-routed backends (e.g. Azure/OpenAI strict structured output) reject
+// `minItems`/`maxItems` > 1. The desired count is requested in the prompt instead.
 const hookSchema = z.object({
   finalPost: z.string(),
-  hookVariations: z.array(z.string()).min(2).max(3),
+  hookVariations: z.array(z.string()),
 });
 
 export interface HookEditorResult {
