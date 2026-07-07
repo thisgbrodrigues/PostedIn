@@ -16,6 +16,17 @@ export interface Fact {
   confidence: 'high' | 'low';
 }
 
+export interface Brandbook {
+  id: string;
+  name: string;
+  role: string;
+  company: string;
+  industry: string;
+  bio: string;
+  values: string;
+  voiceReferences: string;
+}
+
 export interface PipelineState {
   theme?: string;
   themeRationale?: string;
