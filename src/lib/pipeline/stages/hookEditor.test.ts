@@ -5,7 +5,7 @@ import * as ai from 'ai';
 
 vi.mock('ai', async () => {
   const actual = await vi.importActual<typeof import('ai')>('ai');
-  return { ...actual, generateObject: vi.fn() };
+  return { ...actual, generateText: vi.fn(), generateObject: vi.fn() };
 });
 
 const baseConfig: ConfigProfile = {
@@ -20,8 +20,11 @@ const baseConfig: ConfigProfile = {
 
 describe('runHookEditor', () => {
   it('returns the final post and hook variations', async () => {
+    vi.mocked(ai.generateText).mockResolvedValueOnce({
+      text: 'Gancho novo\n\nResto do post...',
+    } as Awaited<ReturnType<typeof ai.generateText>>);
     vi.mocked(ai.generateObject).mockResolvedValueOnce({
-      object: { finalPost: 'Gancho novo\n\nResto do post...', hookVariations: ['Gancho A', 'Gancho B'] },
+      object: { hookVariations: ['Gancho A', 'Gancho B'] },
     } as Awaited<ReturnType<typeof ai.generateObject>>);
 
     const result = await runHookEditor({ draft: 'Gancho velho\n\nResto do post...' }, baseConfig);
@@ -30,7 +33,16 @@ describe('runHookEditor', () => {
     expect(result.finalPost).toBe('Gancho novo\n\nResto do post...');
   });
 
-  it('throws a StageError when the LLM call fails', async () => {
+  it('throws a StageError when the rewrite call fails', async () => {
+    vi.mocked(ai.generateText).mockRejectedValueOnce(new Error('bad request'));
+
+    await expect(runHookEditor({ draft: 'x' }, baseConfig)).rejects.toThrow(StageError);
+  });
+
+  it('throws a StageError when the variations call fails', async () => {
+    vi.mocked(ai.generateText).mockResolvedValueOnce({
+      text: 'Gancho novo\n\nResto do post...',
+    } as Awaited<ReturnType<typeof ai.generateText>>);
     vi.mocked(ai.generateObject).mockRejectedValueOnce(new Error('bad request'));
 
     await expect(runHookEditor({ draft: 'x' }, baseConfig)).rejects.toThrow(StageError);
