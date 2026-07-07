@@ -6,6 +6,7 @@ import { Wordmark } from "./Logo";
 
 const LINKS = [
   { href: "/", label: "Início" },
+  { href: "/brandbook", label: "Brandbook" },
   { href: "/perfis", label: "Perfis" },
   { href: "/gerar", label: "Gerar post" },
 ];
